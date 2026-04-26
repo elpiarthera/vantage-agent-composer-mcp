@@ -10,13 +10,16 @@ export const inputSchema = z.object({
     .string()
     .min(20)
     .max(300)
-    .describe("What you want the agent to accomplish"),
+    .describe("Goal: what you want the agent to accomplish (20-300 chars)"),
   constraints: z
     .array(z.string())
     .max(5)
     .optional()
     .describe("Optional constraints (e.g. 'must be concise', 'no jargon')"),
-  locale: z.enum(["en", "fr"]).default("en"),
+  locale: z
+    .enum(["en", "fr"])
+    .default("en")
+    .describe("Locale: 'en' (default) | 'fr'"),
 });
 
 // MINOR FIX #2: role_id, persona_id, framework_id use ROLE_ID/PERSONA_ID/FRAMEWORK_ID enums.

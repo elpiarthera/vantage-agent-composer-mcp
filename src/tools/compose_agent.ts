@@ -30,8 +30,11 @@ export const inputSchema = z.object({
     .string()
     .min(20)
     .max(500)
-    .describe("Brief context for the agent's purpose"),
-  locale: z.enum(["en", "fr"]).default("en"),
+    .describe("Brief context for the agent's purpose (20-500 chars)"),
+  locale: z
+    .enum(["en", "fr"])
+    .default("en")
+    .describe("Locale: 'en' (default) | 'fr'"),
   format: COMPOSITION_FORMAT.default("system_prompt"),
 });
 

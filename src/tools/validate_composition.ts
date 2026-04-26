@@ -11,7 +11,10 @@ export const inputSchema = z.object({
   persona_id: PERSONA_ID,
   framework_id: FRAMEWORK_ID.optional(),
   skills: z.array(z.string()).optional(),
-  locale: z.enum(["en", "fr"]).default("en"),
+  locale: z
+    .enum(["en", "fr"])
+    .default("en")
+    .describe("Locale: 'en' (default) | 'fr'"),
 });
 
 export const outputSchema = z.object({
