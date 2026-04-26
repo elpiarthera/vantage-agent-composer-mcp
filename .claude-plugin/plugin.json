@@ -1,0 +1,12 @@
+{
+  "name": "vantage-agent-composer-mcp",
+  "version": "1.0.0",
+  "description": "Compose an AI agent by mixing Role + Persona + Framework + Skills as a structured primitive. 12 roles + 10 personas + 16 framework references (mirrored from @vantageos/mcp-frameworks). Bilingual FR+EN.",
+  "description_fr": "Compose un agent IA en mixant Rôle + Persona + Framework + Skills comme primitive structurée. 12 rôles + 10 personas + 16 références frameworks (miroir de @vantageos/mcp-frameworks). Bilingue FR+EN.",
+  "author": "ElPi Corp / Laurent Perello",
+  "license": "MIT",
+  "homepage": "https://github.com/elpiarthera/vantage-agent-composer-mcp",
+  "category": "mcp-server",
+  "bilingual": true,
+  "keywords": ["mcp", "claude-code", "agent-composer", "agent", "persona", "framework", "vantage"]
+}

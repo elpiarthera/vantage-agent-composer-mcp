@@ -1,0 +1,19 @@
+{
+  "error.invalid_params": "Paramètres invalides fournis à l'outil.",
+  "error.role_not_found": "Aucun rôle trouvé pour cet identifiant.",
+  "error.persona_not_found": "Aucun persona trouvé pour cet identifiant.",
+  "error.framework_not_found": "Aucun framework trouvé pour cet identifiant.",
+  "error.context_too_short": "Le contexte doit comporter au moins 20 caractères.",
+  "error.goal_too_short": "L'objectif doit comporter au moins 20 caractères.",
+  "error.too_many_skills": "compose_agent accepte au maximum 10 compétences.",
+  "error.invalid_role_category": "Catégorie de rôle inconnue. Valeurs autorisées : technical, creative, analytical, operational, leadership, all.",
+  "error.invalid_persona_axis": "Axe de persona inconnu. Valeurs autorisées : formality, energy, directness, domain_focus, all.",
+  "error.invalid_format": "Format de composition inconnu. Valeurs autorisées : system_prompt, json_definition, markdown_card.",
+  "error.internal": "Une erreur interne est survenue lors du traitement de la requête.",
+  "warn.output_validation_failed": "La sortie de l'outil n'a pas passé la validation de schéma ; le payload a été rejeté avant envoi au client.",
+  "validate.persona_role_clash": "La combinaison persona/rôle choisie est inhabituelle ; vérifie qu'elle correspond bien au style d'interaction souhaité.",
+  "validate.framework_optional": "Aucun framework sélectionné ; l'agent s'appuiera sur son raisonnement par défaut.",
+  "validate.skills_empty": "Aucune compétence fournie ; envisage d'en ajouter 1 à 3 pour ancrer les capacités de l'agent.",
+  "compose.note.framework_used": "Le raisonnement framework est tissé dans le prompt système comme une boucle structurée.",
+  "compose.note.no_framework": "Composition produite sans framework de raisonnement explicite."
+}

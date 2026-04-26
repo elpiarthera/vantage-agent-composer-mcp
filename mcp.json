@@ -1,0 +1,17 @@
+{
+  "name": "vantage-agent-composer-mcp",
+  "version": "1.0.0",
+  "description": "MCP server that composes an AI agent by mixing Role + Persona + Framework + Skills as a structured primitive. Bilingual FR+EN.",
+  "description_fr": "Serveur MCP qui compose un agent IA en mixant Rôle + Persona + Framework + Skills comme primitive structurée. Bilingue FR+EN.",
+  "transport": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "@vantageos/mcp-agent-composer"]
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": false,
+    "prompts": false
+  },
+  "minProtocolVersion": "2025-06-18"
+}

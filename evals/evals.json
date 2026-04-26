@@ -1,0 +1,207 @@
+{
+  "server_name": "vantage-agent-composer-mcp",
+  "version": "1.0.0",
+  "evals": [
+    {
+      "id": 1,
+      "tool": "list_roles",
+      "prompt": "List every available role in English.",
+      "input": { "category": "all", "locale": "en" },
+      "expected_output": "12 roles each with non-empty typical_skills + typical_skills_fr.",
+      "expectations": [
+        "tool 'list_roles' was called",
+        "output.count === 12",
+        "every role has a non-empty typical_skills_fr"
+      ]
+    },
+    {
+      "id": 2,
+      "tool": "list_roles",
+      "prompt": "Filter to technical roles in French.",
+      "input": { "category": "technical", "locale": "fr" },
+      "expected_output": "Subset of technical roles including technical-architect, senior-developer, qa-engineer, tech-lead.",
+      "expectations": [
+        "tool 'list_roles' was called",
+        "output.roles every category equals 'technical'",
+        "ids include technical-architect, senior-developer, qa-engineer, tech-lead"
+      ]
+    },
+    {
+      "id": 3,
+      "tool": "list_roles",
+      "prompt": "Reject a bogus category.",
+      "input": { "category": "bogus", "locale": "en" },
+      "expected_output": "Validation error.",
+      "expectations": ["handler throws"]
+    },
+    {
+      "id": 4,
+      "tool": "list_personas",
+      "prompt": "List every persona in EN.",
+      "input": { "axis": "all", "locale": "en" },
+      "expected_output": "10 personas with bilingual fields.",
+      "expectations": [
+        "tool 'list_personas' was called",
+        "output.count === 10",
+        "every persona has voice_traits_fr"
+      ]
+    },
+    {
+      "id": 5,
+      "tool": "list_personas",
+      "prompt": "Filter personas by directness axis in FR.",
+      "input": { "axis": "directness", "locale": "fr" },
+      "expected_output": "Subset of personas with axis=directness.",
+      "expectations": [
+        "tool 'list_personas' was called",
+        "output.personas every axis equals 'directness'",
+        "ids include socratic-questioner, direct-pragmatist, provocative-challenger"
+      ]
+    },
+    {
+      "id": 6,
+      "tool": "list_personas",
+      "prompt": "Bogus axis.",
+      "input": { "axis": "bogus", "locale": "en" },
+      "expected_output": "Validation error.",
+      "expectations": ["handler throws"]
+    },
+    {
+      "id": 7,
+      "tool": "compose_agent",
+      "prompt": "Compose technical-architect + direct-pragmatist + first-principles in EN.",
+      "input": {
+        "role_id": "technical-architect",
+        "persona_id": "direct-pragmatist",
+        "framework_id": "first-principles",
+        "skills": ["system design", "trade-off analysis"],
+        "context": "Design the migration path from monolith to event-driven services for a 50-engineer team.",
+        "locale": "en",
+        "format": "system_prompt"
+      },
+      "expected_output": "system_prompt with role + framework + skills woven in.",
+      "expectations": [
+        "tool 'compose_agent' was called",
+        "output.format === 'system_prompt'",
+        "output.composed_output mentions Technical Architect and First Principles"
+      ]
+    },
+    {
+      "id": 8,
+      "tool": "compose_agent",
+      "prompt": "Compose creative-director + playful-creative in FR (json_definition).",
+      "input": {
+        "role_id": "creative-director",
+        "persona_id": "playful-creative",
+        "context": "Lancer une campagne 360 pour une marque de matelas DTC en France au printemps 2026.",
+        "locale": "fr",
+        "format": "json_definition"
+      },
+      "expected_output": "json_definition with locale=fr and no framework.",
+      "expectations": [
+        "tool 'compose_agent' was called",
+        "output.format === 'json_definition'",
+        "output.framework is null"
+      ]
+    },
+    {
+      "id": 9,
+      "tool": "compose_agent",
+      "prompt": "Reject invalid role_id.",
+      "input": {
+        "role_id": "not-a-role",
+        "persona_id": "direct-pragmatist",
+        "context": "Some long enough context string crossing the 20 character threshold.",
+        "locale": "en",
+        "format": "system_prompt"
+      },
+      "expected_output": "Validation error.",
+      "expectations": ["handler throws"]
+    },
+    {
+      "id": 10,
+      "tool": "suggest_composition",
+      "prompt": "Build an agent that helps debug production incidents.",
+      "input": {
+        "goal": "Build an agent that helps debug production incidents and reduce mean time to recovery."
+      },
+      "expected_output": "Top suggestions including technical roles + 5-whys/cynefin.",
+      "expectations": [
+        "tool 'suggest_composition' was called",
+        "output.suggestions.length <= 3",
+        "ids overlap with [technical-architect, qa-engineer]",
+        "scores are monotonically non-increasing"
+      ]
+    },
+    {
+      "id": 11,
+      "tool": "suggest_composition",
+      "prompt": "Ambiguous goal yields fallback suggestion.",
+      "input": {
+        "goal": "I want a generic helpful agent for our team without a specific use case yet."
+      },
+      "expected_output": "Fallback suggestion with rationale.",
+      "expectations": [
+        "tool 'suggest_composition' was called",
+        "output.suggestions.length <= 3",
+        "every suggestion has rationale"
+      ]
+    },
+    {
+      "id": 12,
+      "tool": "suggest_composition",
+      "prompt": "Reject too-short goal.",
+      "input": { "goal": "short" },
+      "expected_output": "Validation error.",
+      "expectations": ["handler throws"]
+    },
+    {
+      "id": 13,
+      "tool": "validate_composition",
+      "prompt": "Validate a clean composition.",
+      "input": {
+        "role_id": "executive-coach",
+        "persona_id": "warm-mentor",
+        "framework_id": "cynefin",
+        "skills": ["active listening", "powerful questions"],
+        "locale": "en"
+      },
+      "expected_output": "valid=true, score >= 80.",
+      "expectations": [
+        "tool 'validate_composition' was called",
+        "output.valid === true",
+        "output.compatibility_score >= 80"
+      ]
+    },
+    {
+      "id": 14,
+      "tool": "validate_composition",
+      "prompt": "Detect persona-role clash (provocative-challenger + executive-coach).",
+      "input": {
+        "role_id": "executive-coach",
+        "persona_id": "provocative-challenger",
+        "framework_id": "cynefin",
+        "skills": ["active listening"],
+        "locale": "fr"
+      },
+      "expected_output": "Warning about persona/role clash with FR message.",
+      "expectations": [
+        "tool 'validate_composition' was called",
+        "output.warnings includes severity 'warning'",
+        "every warning has message_fr"
+      ]
+    },
+    {
+      "id": 15,
+      "tool": "validate_composition",
+      "prompt": "Reject invalid role_id.",
+      "input": {
+        "role_id": "ghost",
+        "persona_id": "warm-mentor",
+        "locale": "en"
+      },
+      "expected_output": "Validation error.",
+      "expectations": ["handler throws"]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "vantage-agent-composer": {
+      "command": "npx",
+      "args": ["-y", "@vantageos/mcp-agent-composer"]
+    }
+  }
+}
