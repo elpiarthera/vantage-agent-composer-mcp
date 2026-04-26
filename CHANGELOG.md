@@ -1,3 +1,16 @@
+## [1.0.4] - 2026-04-26
+### Fixed
+- `suggest_composition` matching: added keyword index FR+EN per role (`src/data/role-keywords.ts`). Generic fallback (tech-lead) only triggers when no keyword matches. Closes #3 (user-reported "Rédiger posts LinkedIn" → tech-lead instead of copywriter).
+- 12 roles now have comprehensive FR+EN keyword arrays (150+ keywords total). Multi-word phrases scored +3 vs single tokens +1.
+- Scores are deterministic, monotonically non-increasing in output.
+
+### Tests
+- 10 new unit tests in `tests/unit/suggest_composition-keyword-matching.test.ts` covering FR+EN keyword matching and generic fallback.
+- 5 new evals (#16–#20) in `evals/evals.json` for keyword-matching acceptance criteria.
+- 45/45 unit tests + 20/20 evals green.
+
+[1.0.4]: https://github.com/elpiarthera/vantage-agent-composer-mcp/releases/tag/v1.0.4
+
 ## [1.0.3] - 2026-04-26
 ### Audited
 - Bug #3 input duplication audit on compose_agent / validate_composition / suggest_composition: none found, all clean.

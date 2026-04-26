@@ -202,6 +202,77 @@
       },
       "expected_output": "Validation error.",
       "expectations": ["handler throws"]
+    },
+    {
+      "id": 16,
+      "tool": "suggest_composition",
+      "prompt": "FR: Rédiger des posts LinkedIn → top match copywriter (Issue #3 fix).",
+      "input": {
+        "goal": "Rédiger des posts LinkedIn pour promouvoir notre nouvelle offre de service.",
+        "locale": "fr"
+      },
+      "expected_output": "Top suggestion role_id === copywriter.",
+      "expectations": [
+        "tool 'suggest_composition' was called",
+        "output.suggestions[0].role_id === 'copywriter'"
+      ]
+    },
+    {
+      "id": 17,
+      "tool": "suggest_composition",
+      "prompt": "EN: Build CI/CD pipeline → top match tech-lead, senior-developer, or technical-architect.",
+      "input": {
+        "goal": "Build a CI/CD pipeline to deploy our infrastructure automatically on every merge.",
+        "locale": "en"
+      },
+      "expected_output": "Top suggestion role_id is a technical role (tech-lead, senior-developer, or technical-architect).",
+      "expectations": [
+        "tool 'suggest_composition' was called",
+        "output.suggestions[0].role_id in ['tech-lead','senior-developer','technical-architect']"
+      ]
+    },
+    {
+      "id": 18,
+      "tool": "suggest_composition",
+      "prompt": "EN: Run market analysis → top match business-strategist or data-analyst.",
+      "input": {
+        "goal": "Run a market analysis on our main competitors and assess our positioning strategy.",
+        "locale": "en"
+      },
+      "expected_output": "Top suggestion role_id is business-strategist, data-analyst, or researcher.",
+      "expectations": [
+        "tool 'suggest_composition' was called",
+        "output.suggestions[0].role_id in ['business-strategist','data-analyst','researcher']"
+      ]
+    },
+    {
+      "id": 19,
+      "tool": "suggest_composition",
+      "prompt": "FR: Auditer stratégie produit → top match product-manager or business-strategist.",
+      "input": {
+        "goal": "Auditer notre stratégie produit et proposer une nouvelle roadmap pour Q3 2026.",
+        "locale": "fr"
+      },
+      "expected_output": "Top suggestion role_id is product-manager or business-strategist.",
+      "expectations": [
+        "tool 'suggest_composition' was called",
+        "output.suggestions[0].role_id in ['product-manager','business-strategist']"
+      ]
+    },
+    {
+      "id": 20,
+      "tool": "suggest_composition",
+      "prompt": "Generic ambiguous goal → fallback tech-lead.",
+      "input": {
+        "goal": "I want a helpful assistant but I am not sure what for exactly yet.",
+        "locale": "en"
+      },
+      "expected_output": "Fallback suggestion: top role_id === tech-lead.",
+      "expectations": [
+        "tool 'suggest_composition' was called",
+        "output.suggestions[0].role_id === 'tech-lead'",
+        "every suggestion has rationale and rationale_fr"
+      ]
     }
   ]
 }
