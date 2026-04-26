@@ -6,6 +6,7 @@ import {
   FRAMEWORK_ID,
   COMPOSITION_FORMAT,
 } from "../schemas/index.js";
+import type { RoleId, PersonaId } from "../schemas/index.js";
 import { getRoleById } from "../data/roles.js";
 import { getPersonaById } from "../data/personas.js";
 import { getFrameworkSteps } from "../data/framework-steps.js";
@@ -14,9 +15,23 @@ import { t } from "../lib/i18n.js";
 import { ComposerError } from "../lib/errors.js";
 import { getEnrichmentEntry } from "../data/role-persona-examples.js";
 
+// Known catalogs for fallback detection (lesson #20 — no Zod hard reject for coverage gaps)
+const KNOWN_ROLE_IDS = ROLE_ID.options;
+const KNOWN_PERSONA_IDS = PERSONA_ID.options;
+
 export const inputSchema = z.object({
-  role_id: ROLE_ID,
-  persona_id: PERSONA_ID,
+  role_id: z
+    .string()
+    .min(1)
+    .describe(
+      `Role ID — must match one of the 12 known IDs [${KNOWN_ROLE_IDS.join(", ")}] OR a custom string for generic fallback composition`,
+    ),
+  persona_id: z
+    .string()
+    .min(1)
+    .describe(
+      `Persona ID — must match one of the 10 known IDs [${KNOWN_PERSONA_IDS.join(", ")}] OR a custom string for generic fallback composition`,
+    ),
   framework_id: FRAMEWORK_ID.optional().describe(
     "Optional reasoning framework (composes with @vantageos/mcp-frameworks catalog)",
   ),
@@ -328,9 +343,50 @@ export const tool = {
   handler: async (input: ComposeAgentInput): Promise<ComposeAgentOutput> => {
     const t0 = Date.now();
     const parsed = inputSchema.parse(input);
-    const role = getRoleById(parsed.role_id);
+
+    // Graceful fallback for unknown role_id / persona_id (lesson #20 — MVP-12 coverage gap)
+    const roleIsKnown = (KNOWN_ROLE_IDS as readonly string[]).includes(parsed.role_id);
+    const personaIsKnown = (KNOWN_PERSONA_IDS as readonly string[]).includes(parsed.persona_id);
+
+    if (!roleIsKnown || !personaIsKnown) {
+      const agentId = randomUUID();
+      const locale = parsed.locale;
+      const unknownNote =
+        locale === "fr"
+          ? `[Generic fallback] Aucun enrichissement artisanal pour role_id="${parsed.role_id}" / persona_id="${parsed.persona_id}". Couverture MVP-12 : rôles=[${KNOWN_ROLE_IDS.join(", ")}] personas=[${KNOWN_PERSONA_IDS.join(", ")}]. Feuille de route v1.1.x : expansion incrémentale selon la demande. Composition générique : agent avec rôle "${parsed.role_id}" + persona "${parsed.persona_id}" + framework "${parsed.framework_id ?? "non spécifié"}" + contexte "${parsed.context}".`
+          : `[Generic fallback] No handcrafted enrichment for role_id="${parsed.role_id}" / persona_id="${parsed.persona_id}". MVP-12 coverage: roles=[${KNOWN_ROLE_IDS.join(", ")}] personas=[${KNOWN_PERSONA_IDS.join(", ")}]. v1.1.x roadmap: incremental expansion per real user demand. Generic composition: agent with role "${parsed.role_id}" + persona "${parsed.persona_id}" + framework "${parsed.framework_id ?? "unspecified"}" + context "${parsed.context}".`;
+
+      const genericOutput = unknownNote;
+      const result: ComposeAgentOutput = {
+        agent_id: agentId,
+        role: parsed.role_id,
+        persona: parsed.persona_id,
+        framework: null,
+        skills: parsed.skills ?? [],
+        composed_output: genericOutput,
+        composition_notes: [
+          locale === "fr"
+            ? "Composition générique utilisée — role_id ou persona_id hors catalogue MVP-12."
+            : "Generic composition used — role_id or persona_id outside MVP-12 catalog.",
+        ],
+        format: parsed.format,
+        fetchedAt: new Date().toISOString(),
+      };
+      logger.info({
+        tool: "compose_agent",
+        duration_ms: Date.now() - t0,
+        format: parsed.format,
+        fallback: true,
+        role_id: parsed.role_id,
+        persona_id: parsed.persona_id,
+      });
+      return outputSchema.parse(result);
+    }
+
+    // At this point role_id and persona_id are guaranteed to be in the known catalogs
+    const role = getRoleById(parsed.role_id as RoleId);
     if (!role) throw new ComposerError("ROLE_NOT_FOUND", parsed.locale);
-    const persona = getPersonaById(parsed.persona_id);
+    const persona = getPersonaById(parsed.persona_id as PersonaId);
     if (!persona) throw new ComposerError("PERSONA_NOT_FOUND", parsed.locale);
 
     const fwEntry = parsed.framework_id

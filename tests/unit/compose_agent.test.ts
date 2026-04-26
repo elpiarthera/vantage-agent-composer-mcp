@@ -38,17 +38,19 @@ describe("compose_agent", () => {
     expect(parsed.framework).toBeNull();
   });
 
-  it("rejects an invalid role_id", async () => {
-    await expect(
-      tool.handler({
-        // @ts-expect-error
-        role_id: "not-a-role",
-        persona_id: "direct-pragmatist",
-        context:
-          "Some long enough context string that crosses the 20 char threshold.",
-        locale: "en",
-        format: "system_prompt",
-      }),
-    ).rejects.toThrow();
+  it("returns graceful fallback for unknown role_id (lesson #20 — no Zod hard reject)", async () => {
+    // Schema widened (Approach A): unknown role_id → [Generic fallback] success response, NOT throw.
+    const out = await tool.handler({
+      // @ts-expect-error intentional unknown value to test graceful fallback
+      role_id: "not-a-role",
+      persona_id: "direct-pragmatist",
+      context:
+        "Some long enough context string that crosses the 20 char threshold.",
+      locale: "en",
+      format: "system_prompt",
+    });
+    expect(out.composed_output).toMatch(/\[Generic fallback\]/);
+    expect(out.composed_output).toMatch(/not-a-role/);
+    expect(out.composition_notes[0]).toMatch(/Generic composition/);
   });
 });

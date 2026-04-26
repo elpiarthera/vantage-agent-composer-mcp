@@ -107,7 +107,7 @@
     {
       "id": 9,
       "tool": "compose_agent",
-      "prompt": "Reject invalid role_id.",
+      "prompt": "Graceful fallback for unknown role_id (lesson #20 — no Zod hard reject for MVP-12 coverage gaps).",
       "input": {
         "role_id": "not-a-role",
         "persona_id": "direct-pragmatist",
@@ -115,8 +115,8 @@
         "locale": "en",
         "format": "system_prompt"
       },
-      "expected_output": "Validation error.",
-      "expectations": ["handler throws"]
+      "expected_output": "Generic fallback response (success, not error).",
+      "expectations": ["output.composed_output contains [Generic fallback]"]
     },
     {
       "id": 10,
