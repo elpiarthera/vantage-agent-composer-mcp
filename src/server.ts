@@ -10,6 +10,7 @@ import { tool as listPersonas } from "./tools/list_personas.js";
 import { tool as composeAgent } from "./tools/compose_agent.js";
 import { tool as suggestComposition } from "./tools/suggest_composition.js";
 import { tool as validateComposition } from "./tools/validate_composition.js";
+import { z } from "zod";
 import { logger } from "./lib/logger.js";
 import { ComposerError } from "./lib/errors.js";
 
@@ -22,7 +23,7 @@ export const TOOLS = [
 ] as const;
 
 export const SERVER_NAME = "vantage-agent-composer-mcp";
-export const SERVER_VERSION = "1.0.0";
+export const SERVER_VERSION = "1.0.1";
 
 type AnyTool = (typeof TOOLS)[number];
 
@@ -97,14 +98,52 @@ export function createServer(): VantageAgentComposerServer {
               content: [{ type: "text", text: `Unknown tool: ${name}` }],
             };
           }
+          let validatedArgs: unknown;
+          try {
+            validatedArgs = target.inputSchema.parse(args);
+          } catch (err) {
+            if (err instanceof z.ZodError) {
+              const msg = err.errors
+                .map(
+                  (e) =>
+                    `${e.path.join(".") || "<root>"}: ${e.message}`,
+                )
+                .join("; ");
+              logger.warn({ tool: name, error: "VALIDATION_ERROR", msg });
+              return {
+                isError: true,
+                content: [
+                  { type: "text", text: `Validation error: ${msg}` },
+                ],
+              };
+            }
+            throw err;
+          }
           try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const out = await (target.handler as (i: any) => Promise<unknown>)(args);
+            const out = await (target.handler as (i: any) => Promise<unknown>)(
+              validatedArgs,
+            );
             return {
               content: [{ type: "text", text: JSON.stringify(out) }],
               structuredContent: out,
             };
           } catch (err) {
+            if (err instanceof z.ZodError) {
+              const msg = err.errors
+                .map(
+                  (e) =>
+                    `${e.path.join(".") || "<root>"}: ${e.message}`,
+                )
+                .join("; ");
+              logger.warn({ tool: name, error: "VALIDATION_ERROR", msg });
+              return {
+                isError: true,
+                content: [
+                  { type: "text", text: `Validation error: ${msg}` },
+                ],
+              };
+            }
             if (err instanceof ComposerError) {
               logger.warn({ tool: name, error: err.code });
               return {

@@ -6,8 +6,13 @@ export const inputSchema = z.object({
   axis: z
     .enum(["formality", "energy", "directness", "domain_focus", "all"])
     .default("all")
-    .describe("Filter personas by axis"),
-  locale: z.enum(["en", "fr"]).default("en").describe("Locale for descriptions"),
+    .describe(
+      "Persona axis: 'all' (default) | 'formality' | 'energy' | 'directness' | 'domain_focus'",
+    ),
+  locale: z
+    .enum(["en", "fr"])
+    .default("en")
+    .describe("Locale: 'en' (default) | 'fr'"),
 });
 
 export const outputSchema = z.object({
