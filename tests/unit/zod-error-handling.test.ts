@@ -74,15 +74,16 @@ async function callTool(
 }
 
 describe("zod-error-handling — readable Validation errors via isError", () => {
-  test("compose_agent returns isError on invalid role_id", async () => {
+  test("compose_agent returns graceful fallback (not isError) for unknown role_id (lesson #20)", async () => {
+    // Since schema widening (Approach A), unknown role_id → graceful [Generic fallback], NOT isError.
     const result = await callTool("compose_agent", {
       role_id: "invented-role",
       persona_id: "direct-pragmatist",
       context: "A 20+ char context string here for valid context length",
     });
-    expect(result.isError).toBe(true);
-    expect(result.content[0].text).toMatch(/role_id/);
-    expect(result.content[0].text).toMatch(/Validation error/);
+    expect(result.isError).toBeFalsy();
+    expect(result.content[0].text).toMatch(/Generic fallback/);
+    expect(result.content[0].text).toMatch(/invented-role/);
   });
 
   test("suggest_composition returns isError when goal too short (<20 chars)", async () => {

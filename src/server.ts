@@ -5,6 +5,9 @@
  * so the test suite can import `TOOLS` and `createServer` without requiring
  * the SDK at unit-test time.
  */
+import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { tool as listRoles } from "./tools/list_roles.js";
 import { tool as listPersonas } from "./tools/list_personas.js";
 import { tool as composeAgent } from "./tools/compose_agent.js";
@@ -23,7 +26,13 @@ export const TOOLS = [
 ] as const;
 
 export const SERVER_NAME = "vantage-agent-composer-mcp";
-export const SERVER_VERSION = "1.0.1";
+
+// Dynamic version read from package.json — single source of truth (lesson #19).
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const _packageJson = JSON.parse(
+  readFileSync(join(__dirname, "..", "package.json"), "utf-8"),
+) as { version: string };
+export const SERVER_VERSION: string = _packageJson.version;
 
 type AnyTool = (typeof TOOLS)[number];
 

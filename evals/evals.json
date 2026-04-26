@@ -107,7 +107,7 @@
     {
       "id": 9,
       "tool": "compose_agent",
-      "prompt": "Reject invalid role_id.",
+      "prompt": "Graceful fallback for unknown role_id (lesson #20 — no Zod hard reject for MVP-12 coverage gaps).",
       "input": {
         "role_id": "not-a-role",
         "persona_id": "direct-pragmatist",
@@ -115,8 +115,8 @@
         "locale": "en",
         "format": "system_prompt"
       },
-      "expected_output": "Validation error.",
-      "expectations": ["handler throws"]
+      "expected_output": "Generic fallback response (success, not error).",
+      "expectations": ["output.composed_output contains [Generic fallback]"]
     },
     {
       "id": 10,
@@ -257,6 +257,84 @@
       "expectations": [
         "tool 'suggest_composition' was called",
         "output.suggestions[0].role_id in ['product-manager','business-strategist']"
+      ]
+    },
+    {
+      "id": 21,
+      "tool": "compose_agent",
+      "prompt": "Compose copywriter+direct-pragmatist with enrichment_level=standard → EXAMPLES and DOS present.",
+      "input": {
+        "role_id": "copywriter",
+        "persona_id": "direct-pragmatist",
+        "context": "Write build-in-public posts for a SaaS founder launching an MCP server product.",
+        "locale": "en",
+        "format": "system_prompt",
+        "enrichment_level": "standard"
+      },
+      "expected_output": "system_prompt with EXAMPLES + DOS + DONTS sections appended after base content.",
+      "expectations": [
+        "tool 'compose_agent' was called",
+        "output.composed_output includes 'EXAMPLES'",
+        "output.composed_output includes 'DOS'",
+        "output.composed_output includes 'DONTS'",
+        "output.composed_output does not include 'EXPECTED OUTPUT FORMAT'"
+      ]
+    },
+    {
+      "id": 22,
+      "tool": "compose_agent",
+      "prompt": "Compose copywriter+direct-pragmatist with enrichment_level=minimal → no enrichment sections.",
+      "input": {
+        "role_id": "copywriter",
+        "persona_id": "direct-pragmatist",
+        "context": "Write build-in-public posts for a SaaS founder launching an MCP server product.",
+        "locale": "en",
+        "format": "system_prompt",
+        "enrichment_level": "minimal"
+      },
+      "expected_output": "v1.0.x compatible system_prompt — no enrichment sections.",
+      "expectations": [
+        "tool 'compose_agent' was called",
+        "output.composed_output does not include 'EXAMPLES'",
+        "output.composed_output includes 'Copywriter'"
+      ]
+    },
+    {
+      "id": 23,
+      "tool": "compose_agent",
+      "prompt": "Compose an unknown combo (qa-engineer + warm-mentor) standard → graceful fallback caveat.",
+      "input": {
+        "role_id": "qa-engineer",
+        "persona_id": "warm-mentor",
+        "context": "Run test planning sessions with junior engineers in an empathetic coaching style.",
+        "locale": "en",
+        "format": "system_prompt",
+        "enrichment_level": "standard"
+      },
+      "expected_output": "system_prompt with graceful fallback caveat mentioning MVP-12 coverage.",
+      "expectations": [
+        "tool 'compose_agent' was called",
+        "output.composed_output includes 'MVP-12 coverage'",
+        "output.composed_output includes 'not in enrichment matrix'"
+      ]
+    },
+    {
+      "id": 24,
+      "tool": "compose_agent",
+      "prompt": "Compose executive-coach+warm-mentor verbose in FR → FORMAT DE SORTIE ATTENDU present.",
+      "input": {
+        "role_id": "executive-coach",
+        "persona_id": "warm-mentor",
+        "context": "Accompagner un dirigeant tech dans une période de transition organisationnelle complexe.",
+        "locale": "fr",
+        "format": "system_prompt",
+        "enrichment_level": "verbose"
+      },
+      "expected_output": "FR system_prompt with EXEMPLES + À FAIRE + À ÉVITER + FORMAT DE SORTIE ATTENDU.",
+      "expectations": [
+        "tool 'compose_agent' was called",
+        "output.composed_output includes 'FORMAT DE SORTIE ATTENDU'",
+        "output.composed_output includes 'EXEMPLES'"
       ]
     },
     {
