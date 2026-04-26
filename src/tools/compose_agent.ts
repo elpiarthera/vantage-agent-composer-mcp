@@ -12,6 +12,7 @@ import { getFrameworkSteps } from "../data/framework-steps.js";
 import { logger } from "../lib/logger.js";
 import { t } from "../lib/i18n.js";
 import { ComposerError } from "../lib/errors.js";
+import { getEnrichmentEntry } from "../data/role-persona-examples.js";
 
 export const inputSchema = z.object({
   role_id: ROLE_ID,
@@ -36,6 +37,12 @@ export const inputSchema = z.object({
     .default("en")
     .describe("Locale: 'en' (default) | 'fr'"),
   format: COMPOSITION_FORMAT.default("system_prompt"),
+  enrichment_level: z
+    .enum(["minimal", "standard", "verbose"])
+    .default("standard")
+    .describe(
+      "Enrichment depth: 'minimal' (v1.0.x compat — no enrichment sections) | 'standard' (default — adds EXAMPLES + DOS + DONTS) | 'verbose' (adds EXAMPLES + DOS + DONTS + OUTPUT FORMAT)",
+    ),
 });
 
 // MINOR FIX #1: framework typed via FRAMEWORK_ID.nullable() (symmetric typing).
@@ -135,8 +142,33 @@ function renderJsonDefinition(args: {
   skills: string[];
   context: string;
   locale: "en" | "fr";
+  enrichmentEntry?: import("../data/role-persona-examples.js").EnrichmentEntry;
+  enrichmentLevel?: "minimal" | "standard" | "verbose";
 }): string {
-  const payload = {
+  const loc = args.locale;
+  const entry = args.enrichmentEntry;
+  const level = args.enrichmentLevel ?? "minimal";
+
+  let enrichmentPayload: Record<string, unknown> | null = null;
+  if (level !== "minimal" && entry) {
+    const examples = loc === "fr" ? entry.examples.fr : entry.examples.en;
+    const dos = loc === "fr" ? entry.dos.fr : entry.dos.en;
+    const donts = loc === "fr" ? entry.donts.fr : entry.donts.en;
+    enrichmentPayload = { examples, dos, donts };
+    if (level === "verbose") {
+      enrichmentPayload.output_format =
+        loc === "fr" ? entry.output_format.fr : entry.output_format.en;
+    }
+  } else if (level !== "minimal" && !entry) {
+    enrichmentPayload = {
+      caveat:
+        loc === "fr"
+          ? "Couverture MVP-12 : cette combinaison n'est pas dans la matrice d'enrichissement — structure générique utilisée. Feuille de route : expansion incrémentale v1.1.x."
+          : "MVP-12 coverage. Combo (role × persona) not in enrichment matrix — using generic structure. Roadmap: v1.1.x incremental expansion per user demand signal.",
+    };
+  }
+
+  const payload: Record<string, unknown> = {
     agent_id: args.agentId,
     locale: args.locale,
     role: { id: args.roleId, name: args.roleName },
@@ -157,6 +189,11 @@ function renderJsonDefinition(args: {
     context: args.context,
     composed_at: new Date().toISOString(),
   };
+
+  if (enrichmentPayload) {
+    payload.enrichment = enrichmentPayload;
+  }
+
   return JSON.stringify(payload, null, 2);
 }
 
@@ -222,6 +259,64 @@ function renderMarkdownCard(args: {
   return lines.join("\n");
 }
 
+/**
+ * Builds the enrichment block appended to any composed output format.
+ * Returns empty string for "minimal" or when no matrix entry exists.
+ */
+function renderEnrichmentBlock(args: {
+  roleId: string;
+  personaId: string;
+  level: "minimal" | "standard" | "verbose";
+  locale: "en" | "fr";
+}): string {
+  const { roleId, personaId, level, locale } = args;
+  if (level === "minimal") return "";
+
+  const entry = getEnrichmentEntry(roleId, personaId);
+  if (!entry) {
+    // Graceful fallback: caveat only
+    if (locale === "fr") {
+      return "\n\n---\n⚠ Couverture MVP-12 : cette combinaison (rôle × persona) n'est pas dans la matrice d'enrichissement — structure générique utilisée. Feuille de route : expansion incrémentale v1.1.x selon les signaux de demande utilisateur.";
+    }
+    return "\n\n---\n⚠ MVP-12 coverage. Combo (role × persona) not in enrichment matrix — using generic structure. Roadmap: v1.1.x incremental expansion per user demand signal.";
+  }
+
+  const lines: string[] = [];
+
+  // EXAMPLES + DOS + DONTS always in standard and verbose
+  const examples = locale === "fr" ? entry.examples.fr : entry.examples.en;
+  const dos = locale === "fr" ? entry.dos.fr : entry.dos.en;
+  const donts = locale === "fr" ? entry.donts.fr : entry.donts.en;
+
+  if (locale === "fr") {
+    lines.push("\n\n---");
+    lines.push("## EXEMPLES");
+    examples.forEach((ex) => lines.push(`- ${ex}`));
+    lines.push("\n## À FAIRE");
+    dos.forEach((d) => lines.push(`- ${d}`));
+    lines.push("\n## À ÉVITER");
+    donts.forEach((d) => lines.push(`- ${d}`));
+    if (level === "verbose") {
+      lines.push("\n## FORMAT DE SORTIE ATTENDU");
+      lines.push(entry.output_format.fr);
+    }
+  } else {
+    lines.push("\n\n---");
+    lines.push("## EXAMPLES");
+    examples.forEach((ex) => lines.push(`- ${ex}`));
+    lines.push("\n## DOS");
+    dos.forEach((d) => lines.push(`- ${d}`));
+    lines.push("\n## DONTS");
+    donts.forEach((d) => lines.push(`- ${d}`));
+    if (level === "verbose") {
+      lines.push("\n## EXPECTED OUTPUT FORMAT");
+      lines.push(entry.output_format.en);
+    }
+  }
+
+  return lines.join("\n");
+}
+
 export const tool = {
   name: "compose_agent",
   description:
@@ -261,18 +356,28 @@ export const tool = {
     const skills = parsed.skills ?? [];
     const agentId = randomUUID();
 
+    const enrichmentEntry = getEnrichmentEntry(role.id, persona.id);
+    const enrichmentBlock = renderEnrichmentBlock({
+      roleId: role.id,
+      personaId: persona.id,
+      level: parsed.enrichment_level,
+      locale,
+    });
+
     let composedOutput: string;
     if (parsed.format === "system_prompt") {
-      composedOutput = renderSystemPrompt({
-        roleName,
-        voiceTraits,
-        frameworkName,
-        frameworkSteps,
-        skills,
-        context: parsed.context,
-        locale,
-      });
+      composedOutput =
+        renderSystemPrompt({
+          roleName,
+          voiceTraits,
+          frameworkName,
+          frameworkSteps,
+          skills,
+          context: parsed.context,
+          locale,
+        }) + enrichmentBlock;
     } else if (parsed.format === "json_definition") {
+      // For JSON format, enrichment is embedded inside the JSON object (not appended as text)
       composedOutput = renderJsonDefinition({
         agentId,
         roleId: role.id,
@@ -286,19 +391,22 @@ export const tool = {
         skills,
         context: parsed.context,
         locale,
+        enrichmentEntry,
+        enrichmentLevel: parsed.enrichment_level,
       });
     } else {
-      composedOutput = renderMarkdownCard({
-        agentId,
-        roleName,
-        personaName,
-        voiceTraits,
-        frameworkName,
-        frameworkSteps,
-        skills,
-        context: parsed.context,
-        locale,
-      });
+      composedOutput =
+        renderMarkdownCard({
+          agentId,
+          roleName,
+          personaName,
+          voiceTraits,
+          frameworkName,
+          frameworkSteps,
+          skills,
+          context: parsed.context,
+          locale,
+        }) + enrichmentBlock;
     }
 
     const compositionNotes: string[] = [];

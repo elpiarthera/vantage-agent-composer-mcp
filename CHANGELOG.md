@@ -1,3 +1,15 @@
+## [1.1.0] - 2026-04-26
+### Added
+- `compose_agent` system prompt enrichment MVP-12 (Closes #4): 12 representative combos handcrafted FR+EN with EXAMPLES + DOS + DONTS + OUTPUT FORMAT sections. New `enrichment_level` parameter (`minimal` | `standard` (default) | `verbose`). Graceful fallback to v1.0.x generic output + caveat for combos not in matrix.
+- `src/data/role-persona-examples.ts`: enrichment matrix with 12 entries (~300 strings handcrafted FR+EN). Lookup helper `getEnrichmentEntry()`.
+- 7 new unit tests in `tests/unit/compose_agent-enrichment-mvp12.test.ts` covering standard/minimal/verbose enrichment levels, unknown-combo fallback, FR locale.
+- `json_definition` format: enrichment embedded in the JSON object under `.enrichment` key (preserves JSON parsability).
+
+### Roadmap
+- v1.1.x incremental expansion of enrichment matrix coverage based on real user demand signal. Current MVP covers: copywriter+direct-pragmatist, business-strategist+precise-analyst, technical-architect+socratic-questioner, senior-developer+concise-executive, product-manager+warm-mentor, creative-director+playful-creative, researcher+detailed-explainer, tech-lead+provocative-challenger, qa-engineer+precise-analyst, data-analyst+formal-academic, operations-manager+empathetic-listener, executive-coach+warm-mentor.
+
+[1.1.0]: https://github.com/elpiarthera/vantage-agent-composer-mcp/releases/tag/v1.1.0
+
 ## [1.0.4] - 2026-04-26
 ### Fixed
 - `suggest_composition` matching: added keyword index FR+EN per role (`src/data/role-keywords.ts`). Generic fallback (tech-lead) only triggers when no keyword matches. Closes #3 (user-reported "Rédiger posts LinkedIn" → tech-lead instead of copywriter).
