@@ -1,3 +1,22 @@
+## [1.0.3] - 2026-04-26
+### Audited
+- Bug #3 input duplication audit on compose_agent / validate_composition / suggest_composition: none found, all clean.
+
+### Added
+- Pre-publish boot smoke test gate (`scripts/smoke-test-boot.sh` + `prepublishOnly`). `node dist/index.js` must respond to MCP `initialize` handshake before publish proceeds. Lesson #11 fleet-wide capture (Day 51 PM C v1.0.4 broken-publish incident).
+
+### Notes
+- mcp.json bumped 1.0.0 → 1.0.3 to restore version parity with package.json (was lagging since v1.0.0 release).
+
+[1.0.3]: https://github.com/elpiarthera/vantage-agent-composer-mcp/releases/tag/v1.0.3
+
+## [1.0.2] — 2026-04-26
+
+### Fixed
+- Build artifacts: ship `dist/` so `npx -y @vantageos/mcp-agent-composer` works post-install (Laurent manual fix post Pi-override).
+
+[1.0.2]: https://github.com/elpiarthera/vantage-agent-composer-mcp/releases/tag/v1.0.2
+
 ## [1.0.1] — 2026-04-26
 
 ### Fixed

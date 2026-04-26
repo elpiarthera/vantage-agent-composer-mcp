@@ -1,6 +1,6 @@
 {
   "name": "@vantageos/mcp-agent-composer",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "MCP server: compose AI agents as Role + Persona + Framework + Skills. 12 roles, 10 personas, 16 framework refs. 5 typed tools. Bilingual FR+EN. stdio, no API key.",
   "description_fr": "Serveur MCP : composez des agents IA par Rôle + Persona + Framework + Skills. 12 rôles, 10 personas, 16 frameworks. 5 outils typés. Bilingue FR+EN.",
   "keywords": [
@@ -43,7 +43,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "evals": "node scripts/run-evals.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "smoke": "bash scripts/smoke-test-boot.sh",
+    "prepublishOnly": "npm run build && npm run smoke && npm test && npm run evals"
   },
   "engines": {
     "node": ">=20"
