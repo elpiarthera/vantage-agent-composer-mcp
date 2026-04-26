@@ -3,43 +3,44 @@
 Serveur MCP qui compose un agent IA en mixant **Rôle + Persona + Framework + Skills** comme primitive structurée. Bilingue FR+EN par design.
 
 > Version : 1.0.0 — GA (2026-04-26)
-> Vendu comme : `vantage-agent-composer-mcp` (listing claudemarketplaces.com) + npm `@vantageos/mcp-agent-composer`
 
-## À propos
+## A propos
 
-La plupart des agents IA sont conçus d'une seule traite, comme un prompt monolithique qui dissimule chaque choix de design. Ce serveur rend ces choix explicites et composables.
+La plupart des agents IA sont definis par un paragraphe ecrit a la va-vite. Ce serveur fait de la conception d'agent une operation structuree et reproductible.
 
-`@vantageos/mcp-agent-composer` expose la composition d'agent comme primitive : choisis un **Rôle** (12 curatés), un **Persona** (10 curatés), un **Framework** optionnel (16 IDs miroir de `@vantageos/mcp-frameworks`) et une liste de **Skills**. Le serveur retourne un prompt système, une définition JSON ou une carte markdown — entièrement bilingue FR+EN, avec un français écrit à la main (zéro traduction automatique).
+`@vantageos/mcp-agent-composer` expose une primitive de composition typee a tout client compatible MCP : choisissez un Role (ce que l'agent maitrise), une Persona (comment il communique), un Framework optionnel (comment il raisonne) et des Skills personnalises (ce qu'il peut faire). Le resultat est une definition d'agent validee, localisee, generee de facon constante d'une session a l'autre — sous forme de prompt systeme, de definition JSON ou de fiche Markdown.
 
 ### Ce qu'il fait
 
-Cinq outils, chacun avec un rôle clair :
+Cinq outils, chacun avec un perimetre clair :
 
-| Outil | Ce que tu obtiens |
+| Outil | Ce que vous obtenez |
 |---|---|
-| `list_roles` | Les 12 rôles (technique, créatif, analytique, opérationnel, leadership) avec libellés et compétences typiques bilingues (EN + FR). |
-| `list_personas` | Les 10 personas (voix / ton / style de communication) avec traits de voix et phrases types bilingues. |
-| `compose_agent` | Une définition d'agent complète en format `system_prompt`, `json_definition` ou `markdown_card`. |
-| `suggest_composition` | Les 1 à 3 meilleures recommandations Rôle + Persona + Framework pour un objectif, scorées 0-100. |
-| `validate_composition` | Vérification de compatibilité qui détecte les conflits persona/rôle, les frameworks manquants, les compétences vides, et retourne un score 0-100. |
+| `list_roles` | Les 12 roles cures avec filtre par categorie (`technical`, `creative`, `analytical`, `operational`, `leadership`). Nom bilingue et description courte par role. |
+| `list_personas` | Les 10 personas cures avec filtre par axe (`formality`, `energy`, `directness`, `domain_focus`). Traits de voix et exemple de formulation par persona. |
+| `compose_agent` | Passez role_id + persona_id + framework_id optionnel + skills optionnels + contexte. Obtenez une definition d'agent complete au format choisi : `system_prompt`, `json_definition` ou `markdown_card`. |
+| `suggest_composition` | Decrivez ce que l'agent doit accomplir. Obtenez 1 a 3 combinaisons Role + Persona + Framework scorees avec justification — sans connaitre le catalogue au prealable. |
+| `validate_composition` | Soumettez n'importe quelle combinaison role/persona/framework/skills. Obtenez un score de compatibilite (0-100), des alertes classees par severite et des recommandations concretes avant deploiement. |
 
 ### Pour qui
 
-- Développeurs qui bâtissent des systèmes agentiques sur Claude Code, Cursor, Goose, ChatGPT MCP ou tout client compatible MCP.
-- Équipes qui itèrent vite sur le design d'agent et veulent un langage structuré partagé pour « quel type d'agent on est en train de bâtir ».
-- Agences IA qui packagent des agents pour leurs clients et ont besoin de compositions reproductibles et validées.
+- Developpeurs IA qui iterent sur la conception de sous-agents pour Claude Code, Cursor, Goose ou ChatGPT MCP
+- Agences IA qui definissent plusieurs configurations d'agents par client et ont besoin de sorties coherentes et auditables
+- Tech leads qui veulent faire de la composition d'agent une primitive typee dans leur pipeline, et non une convention informelle
 
-### Pourquoi pas juste un prompt
+### Pourquoi ce serveur plutot qu'un agent ecrit a la main ou une librairie de prompts
 
-Un prompt te donne un mur de texte. Ce serveur te donne le slot, la bibliothèque de personas, le switch de locale et les règles de validation — structuré, validé, reproductible d'une session à l'autre.
+Un agent defini a la main derive d'une session a l'autre et d'un collaborateur a l'autre. Une librairie de prompts donne des gabarits sans validation. Ce serveur produit une composition validee avec un score de compatibilite, des sorties localisees et un resultat reproductible tague par UUID — sans que l'appelant ait besoin de maitriser le prompt engineering.
 
-### Démarrage rapide
+Le parametre `framework_id` partage le meme catalogue de 16 frameworks que `@vantageos/mcp-frameworks` pour une composition inter-serveurs : appelez `suggest_framework` sur l'un, passez l'identifiant retourne directement a `compose_agent` sur l'autre.
+
+### Demarrage rapide
 
 ```bash
 npx -y @vantageos/mcp-agent-composer
 ```
 
-Ajoute à la config de ton client MCP :
+Ajoutez dans `mcp.json` :
 
 ```json
 {
@@ -52,25 +53,20 @@ Ajoute à la config de ton client MCP :
 }
 ```
 
-> **Pas de clé API. Pas de compte. Pas d'auth en v1.0.** La variable d'environnement `ALLOWED_ROLES` est **reportée en Phase 2**.
-
-Redémarre ton client MCP et demande : « Compose-moi un agent capable de débugger les incidents en production en français. »
+Pas de cle API. Pas de compte. Redemarrez votre client MCP et demandez : "Compose un agent pour le debogage d'incidents en production — direct, technique, avec un raisonnement par premiers principes."
 
 ### Exemples
 
-**Composer un·e architecte pour une question de migration (EN) :**
-`compose_agent({ role_id: "technical-architect", persona_id: "direct-pragmatist", framework_id: "first-principles", skills: ["system design", "trade-off analysis"], context: "Design the migration path from monolith to event-driven services.", locale: "en", format: "system_prompt" })`
+**Conception de sous-agent :** Appelez `compose_agent` avec `role_id: "technical-architect"`, `persona_id: "direct-pragmatist"`, `framework_id: "first-principles"` et un contexte decrivant votre systeme. Obtenez un prompt systeme pret a integrer dans n'importe quel orchestrateur.
 
-**Suggérer une composition pour un atelier de coaching (FR) :**
-`suggest_composition({ goal: "Animer un atelier de coaching pour aider une équipe overloaded à reprioriser." , locale: "fr" })`
+**Decouverte d'abord :** Utilisez `suggest_composition` avec comme objectif `"aider un fondateur non technique a prioriser un backlog de fonctionnalites"`. Obtenez des suggestions scorees — probablement `product-manager` + `warm-mentor` + `eisenhower` — avec justification, avant de toucher a `compose_agent`.
 
-**Valider une combinaison faite à la main avant déploiement :**
-`validate_composition({ role_id: "executive-coach", persona_id: "provocative-challenger", framework_id: "cynefin", skills: ["active listening"], locale: "fr" })`
+**Verification avant deploiement :** Vous avez compose un agent a la main ? Lancez d'abord `validate_composition`. Une persona `provocative-challenger` associee a un role `warm-mentor` obtient un score de compatibilite faible — le serveur explique pourquoi et propose quoi ajuster.
 
-### Doctrine Flexibilité — Phase 1 / Phase 2
+### Doctrine Flexibilite — Phase 1 / Phase 2
 
-Phase 1 (actuelle) : transport stdio, install locale, pas de clé API, pas de serveur distant.
-Phase 2 (prévue) : transport HTTP pour déploiements distants + RBAC `ALLOWED_ROLES` + scoping workspace tier Pro. Auth via Polar.sh. Échéance : T3 2026.
+Phase 1 (actuelle) : transport stdio, installation locale, pas de cle API, pas de serveur distant. Les donnees de catalogue sont entierement hors ligne — aucun appel LLM au moment du list ou du get.
+Phase 2 (prevue) : transport HTTP pour les deploiements distants + tier Pro avec perimetre ALLOWED_ROLES + integration lookup Skills VantageRegistry. Auth via Polar.sh. Activee selon le signal d'adoption.
 
 ---
 

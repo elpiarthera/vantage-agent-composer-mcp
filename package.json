@@ -1,8 +1,8 @@
 {
   "name": "@vantageos/mcp-agent-composer",
   "version": "1.0.0",
-  "description": "MCP server that composes an AI agent by mixing Role + Persona + Framework + Skills as a structured primitive. Bilingual FR+EN. stdio, no API key.",
-  "description_fr": "Serveur MCP qui compose un agent IA en mixant Rôle + Persona + Framework + Skills comme primitive structurée. Bilingue FR+EN. stdio, pas de clé API.",
+  "description": "MCP server: compose AI agents as Role + Persona + Framework + Skills. 12 roles, 10 personas, 16 framework refs. 5 typed tools. Bilingual FR+EN. stdio, no API key.",
+  "description_fr": "Serveur MCP : composez des agents IA par Rôle + Persona + Framework + Skills. 12 rôles, 10 personas, 16 frameworks. 5 outils typés. Bilingue FR+EN.",
   "keywords": [
     "mcp",
     "claude-code",

@@ -18,5 +18,6 @@
 ### Notes
 - `ALLOWED_ROLES` env-var auth deferred to Phase 2 — no auth in v1.0.
 - HTTP transport deferred to Phase 2 — stdio only in v1.0.
+- Vitrine descriptions baked in at first ship (4 surfaces). No SELLABLE AS / timeline leaks.
 
 [1.0.0]: https://github.com/elpiarthera/vantage-agent-composer-mcp/releases/tag/v1.0.0

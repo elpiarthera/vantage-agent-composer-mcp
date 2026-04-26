@@ -3,13 +3,12 @@
 MCP server that composes an AI agent by mixing **Role + Persona + Framework + Skills** as a structured primitive. Bilingual FR+EN by design.
 
 > Version: 1.0.0 — GA (2026-04-26)
-> Sellable as: `vantage-agent-composer-mcp` (claudemarketplaces.com listing) + npm `@vantageos/mcp-agent-composer`
 
 ## About
 
-Most AI agents are designed in one shot, as a monolithic prompt that hides every choice the designer made. This server makes those choices explicit and composable.
+Most AI agents are defined by a single paragraph someone typed in a hurry. This server turns agent design into a structured, repeatable operation.
 
-`@vantageos/mcp-agent-composer` exposes agent composition as a primitive: pick a **Role** (12 curated), a **Persona** (10 curated), an optional **Framework** (16 IDs mirrored from `@vantageos/mcp-frameworks`), and a list of **Skills**. The server returns a system prompt, a JSON definition or a markdown card — fully bilingual FR+EN, with handcrafted French (no machine translation).
+`@vantageos/mcp-agent-composer` gives any MCP-compatible client a typed composition primitive: pick a Role (what the agent knows), a Persona (how it communicates), an optional Framework (how it reasons), and custom Skills (what it can do). The result is a validated, locale-switched agent definition — as a system prompt, a JSON definition, or a Markdown card — generated consistently, session after session.
 
 ### What it does
 
@@ -17,21 +16,23 @@ Five tools, each with a clear job:
 
 | Tool | What you get |
 |---|---|
-| `list_roles` | All 12 roles (technical, creative, analytical, operational, leadership) with bilingual labels and typical skills (EN + FR). |
-| `list_personas` | All 10 personas (voice / tone / communication style) with bilingual voice traits and sample phrases. |
-| `compose_agent` | A complete agent definition in `system_prompt`, `json_definition` or `markdown_card` format. |
-| `suggest_composition` | Top 1-3 Role + Persona + Framework recommendations for a given goal, scored 0-100. |
-| `validate_composition` | Compatibility check that flags persona-role clashes, missing frameworks, empty skills, and returns a 0-100 compatibility score. |
+| `list_roles` | All 12 curated roles with category filter (`technical`, `creative`, `analytical`, `operational`, `leadership`). Bilingual name + one-liner per role. |
+| `list_personas` | All 10 curated personas with axis filter (`formality`, `energy`, `directness`, `domain_focus`). Includes voice traits and a sample phrase per persona. |
+| `compose_agent` | Pass role_id + persona_id + optional framework_id + optional skills + context. Receive a complete agent definition in your chosen format: `system_prompt`, `json_definition`, or `markdown_card`. |
+| `suggest_composition` | Describe what you need the agent to accomplish. Get 1-3 scored Role + Persona + Framework combinations with rationale — without knowing the catalog upfront. |
+| `validate_composition` | Pass any role/persona/framework/skills combination. Get a compatibility score (0-100), severity-tagged warnings, and concrete recommendations before you deploy. |
 
 ### Who it is for
 
-- Developers building agentic systems on Claude Code, Cursor, Goose, ChatGPT MCP, or any MCP-compatible client.
-- Teams iterating fast on agent design who want a shared, structured language for "what kind of agent are we building".
-- AI agencies that package agents for clients and need reproducible, validated compositions.
+- AI developers iterating on sub-agent design for Claude Code, Cursor, Goose, or ChatGPT MCP
+- AI agencies that define multiple agent configurations per client and need consistent, auditable outputs
+- Technical leads who want agent composition to be a typed primitive in their pipeline, not a prose convention
 
-### Why this, not a plain prompt
+### Why this, not hand-prompted agents or a prompt library
 
-A prompt gives you a wall of text. This server gives you the slot, the persona library, the locale switch, and the validation rules — structured, validated, and reproducible across sessions.
+A hand-prompted agent definition drifts between sessions and teammates. A prompt library gives you templates with no validation. This server gives you a validated composition with a compatibility score, locale-switched outputs, and a repeatable UUID-tagged result — with no prompt engineering required from the caller.
+
+The `framework_id` parameter shares the same 16-framework catalog as `@vantageos/mcp-frameworks` for cross-server compose: call `suggest_framework` on one server, pass the returned ID directly to `compose_agent` on this one.
 
 ### Quick Start
 
@@ -39,7 +40,7 @@ A prompt gives you a wall of text. This server gives you the slot, the persona l
 npx -y @vantageos/mcp-agent-composer
 ```
 
-Add to your MCP client config:
+Add to `mcp.json`:
 
 ```json
 {
@@ -52,25 +53,20 @@ Add to your MCP client config:
 }
 ```
 
-> **No API key. No account. No auth in v1.0.** The `ALLOWED_ROLES` environment variable is **deferred to Phase 2**.
-
-Restart your MCP client and ask: "Compose an agent that can debug production incidents in French."
+No API key. No account. Restart your MCP client and ask: "Compose an agent for debugging production incidents — direct, technical, using first-principles reasoning."
 
 ### Examples
 
-**Compose an architect for a migration question (EN):**
-`compose_agent({ role_id: "technical-architect", persona_id: "direct-pragmatist", framework_id: "first-principles", skills: ["system design", "trade-off analysis"], context: "Design the migration path from monolith to event-driven services.", locale: "en", format: "system_prompt" })`
+**Sub-agent design:** Call `compose_agent` with `role_id: "technical-architect"`, `persona_id: "direct-pragmatist"`, `framework_id: "first-principles"`, context describing your system. Receive a system prompt you can drop into any orchestrator immediately.
 
-**Suggest a composition for a coaching workshop (FR):**
-`suggest_composition({ goal: "Animer un atelier de coaching pour aider une équipe overloaded à reprioriser." , locale: "fr" })`
+**Discovery first:** Use `suggest_composition` with goal `"help a non-technical founder prioritize a feature backlog"`. Get scored suggestions — likely `product-manager` + `warm-mentor` + `eisenhower` — with rationale, before touching `compose_agent`.
 
-**Validate a hand-built combo before shipping it:**
-`validate_composition({ role_id: "executive-coach", persona_id: "provocative-challenger", framework_id: "cynefin", skills: ["active listening"], locale: "en" })`
+**Pre-deployment check:** Hand-built a composition? Run `validate_composition` first. A `provocative-challenger` persona paired with a `warm-mentor` role scores low on compatibility — the server tells you why and what to swap.
 
-### Doctrine Flexibilité — Phase 1 / Phase 2
+### Doctrine Flexibilite — Phase 1 / Phase 2
 
-Phase 1 (current): stdio transport, local install, no API key, no remote server.
-Phase 2 (planned): HTTP transport for remote deployments + `ALLOWED_ROLES` RBAC + Pro tier workspace scoping. Auth via Polar.sh. Timeline: Q3 2026.
+Phase 1 (current): stdio transport, local install, no API key, no remote server. Catalog data is fully offline — no LLM call at list/get time.
+Phase 2 (planned): HTTP transport for remote deployments + Pro tier with ALLOWED_ROLES scoping + VantageRegistry Skills lookup integration. Auth via Polar.sh. Activated based on adoption signal.
 
 ---
 
