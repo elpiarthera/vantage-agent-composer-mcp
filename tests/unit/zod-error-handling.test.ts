@@ -31,7 +31,7 @@ async function callTool(
     validated = target.inputSchema.parse(args);
   } catch (e) {
     if (e instanceof z.ZodError) {
-      const msg = e.errors
+      const msg = e.issues
         .map((err) => `${err.path.join(".") || "<root>"}: ${err.message}`)
         .join("; ");
       return {
@@ -52,7 +52,7 @@ async function callTool(
     };
   } catch (err) {
     if (err instanceof z.ZodError) {
-      const msg = err.errors
+      const msg = err.issues
         .map((e) => `${e.path.join(".") || "<root>"}: ${e.message}`)
         .join("; ");
       return {

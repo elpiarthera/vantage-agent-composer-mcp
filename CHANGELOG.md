@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Security
+
+- Runtime: `zod` `^3.23.0` → `^4.6.7` (GHSA-mrhx-c7xc-m3w5, memory exhaustion while validating oversized constrained collections; no fixed 3.x release, fixed in 4.6.6). Code migrated to the zod 4 API: `ZodError.errors` → `.issues`, the tool-list JSON Schema reads `inputSchema.shape` instead of the removed `_def.shape()`.
+
 ## [1.1.0] - 2026-04-26
 ### Added
 - `compose_agent` system prompt enrichment MVP-12 (Closes #4): 12 representative combos handcrafted FR+EN with EXAMPLES + DOS + DONTS + OUTPUT FORMAT sections. New `enrichment_level` parameter (`minimal` | `standard` (default) | `verbose`). Graceful fallback to v1.0.x generic output + caveat for combos not in matrix.

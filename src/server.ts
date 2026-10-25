@@ -38,13 +38,12 @@ type AnyTool = (typeof TOOLS)[number];
 
 function jsonSchemaFromZod(toolDef: AnyTool): Record<string, unknown> {
   // Minimal hand-rolled converter — keeps the package free of an extra dep.
-  const shape = toolDef.inputSchema._def.shape();
+  // zod 4: `shape` is the public accessor (zod 3's `_def.shape()` is gone).
+  const shape = toolDef.inputSchema.shape;
   const properties: Record<string, unknown> = {};
   const required: string[] = [];
   for (const [key, value] of Object.entries(shape)) {
-    const def = (value as { _def: { typeName: string; description?: string } })._def;
-    const description =
-      (value as { description?: string }).description ?? def.description ?? "";
+    const description = (value as { description?: string }).description ?? "";
     properties[key] = { description };
     const hasDefault =
       typeof (value as { isOptional?: () => boolean }).isOptional === "function" &&
@@ -112,7 +111,7 @@ export function createServer(): VantageAgentComposerServer {
             validatedArgs = target.inputSchema.parse(args);
           } catch (err) {
             if (err instanceof z.ZodError) {
-              const msg = err.errors
+              const msg = err.issues
                 .map(
                   (e) =>
                     `${e.path.join(".") || "<root>"}: ${e.message}`,
@@ -139,7 +138,7 @@ export function createServer(): VantageAgentComposerServer {
             };
           } catch (err) {
             if (err instanceof z.ZodError) {
-              const msg = err.errors
+              const msg = err.issues
                 .map(
                   (e) =>
                     `${e.path.join(".") || "<root>"}: ${e.message}`,
